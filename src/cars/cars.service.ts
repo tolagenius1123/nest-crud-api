@@ -10,6 +10,7 @@ import { CreateCarDto } from './dto/create-car.dto';
 import { UpdateCarDto } from './dto/update-car.dto';
 import { MongoServerError } from 'mongodb';
 import { QueryCarsDto } from './dto/query-cars.dto';
+import { User } from 'src/auth/schema/user.schema';
 
 @Injectable()
 export class CarsService {
@@ -46,10 +47,13 @@ export class CarsService {
 		return { data, total, page, limit };
 	}
 
-	async create(createCarDto: CreateCarDto): Promise<Car> {
+	async create(createCarDto: CreateCarDto, user: User): Promise<Car> {
 		const { modelYear, modelTitle } = createCarDto;
+
+		const data = { ...createCarDto, user: user._id };
+
 		try {
-			return await this.carModel.create(createCarDto);
+			return await this.carModel.create(data);
 		} catch (error: unknown) {
 			if (error instanceof MongoServerError && error.code === 11000) {
 				throw new BadRequestException(

@@ -7,6 +7,7 @@ import {
 	Post,
 	Put,
 	Query,
+	UseGuards,
 } from '@nestjs/common';
 import { CreateCarDto } from './dto/create-car.dto';
 import { CarsService } from './cars.service';
@@ -15,6 +16,13 @@ import { ApiResponse } from '../common/interfaces/api-response.interface';
 import { UpdateCarDto } from './dto/update-car.dto';
 import { ParseObjectIdPipe } from '../common/pipes/parse-objectid.pipe';
 import { QueryCarsDto } from './dto/query-cars.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { User } from 'src/auth/schema/user.schema';
+import { GetUser } from 'src/auth/get-user.decorator';
+
+export interface RequestWithUser extends Request {
+	user: User;
+}
 
 @Controller('cars')
 export class CarsController {
@@ -26,10 +34,12 @@ export class CarsController {
 	}
 
 	@Post()
+	@UseGuards(AuthGuard())
 	async createCar(
 		@Body() createCarDto: CreateCarDto,
+		@GetUser() user: User,
 	): Promise<ApiResponse<Car>> {
-		const newCar = await this.carService.create(createCarDto);
+		const newCar = await this.carService.create(createCarDto, user);
 		return {
 			message: 'Car created successfully',
 			data: newCar,
